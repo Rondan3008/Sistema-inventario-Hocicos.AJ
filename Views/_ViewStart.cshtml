@@ -1,0 +1,6 @@
+﻿@{
+    var controller = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+    Layout = controller?.StartsWith("Admin", StringComparison.Ordinal) == true
+        ? "_AdminLayout"
+        : "_Layout";
+}

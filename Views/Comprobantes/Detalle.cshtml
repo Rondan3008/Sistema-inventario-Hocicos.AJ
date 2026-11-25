@@ -1,0 +1,28 @@
+@model HocicosAJ.Models.Database.Comprobante
+
+@{
+    ViewData["Title"] = $"Comprobante {Model.NumeroComprobante}";
+}
+
+<div class="container mt-4">
+    <h1>Comprobante @Model.NumeroComprobante</h1>
+    <p>
+        Registro consultado desde la tabla de comprobantes. El sistema no verifica su validez fiscal
+        ni confirma que el pago se haya recibido.
+    </p>
+    <dl class="row">
+        <dt class="col-sm-3">Tipo</dt>
+        <dd class="col-sm-9">@Model.TipoComprobante</dd>
+        <dt class="col-sm-3">Fecha de emisión</dt>
+        <dd class="col-sm-9">@Model.FechaEmision</dd>
+        <dt class="col-sm-3">Monto</dt>
+        <dd class="col-sm-9">Bs @Model.MontoTotal</dd>
+        <dt class="col-sm-3">Método de pago registrado</dt>
+        <dd class="col-sm-9">@Model.MetodoPago</dd>
+        <dt class="col-sm-3">Compra</dt>
+        <dd class="col-sm-9">
+            <a asp-controller="Compras" asp-action="Detalle" asp-route-id="@Model.ComprasIdcompras">#@Model.ComprasIdcompras</a>
+        </dd>
+    </dl>
+    <a asp-action="Index" asp-route-compraId="@Model.ComprasIdcompras" class="btn btn-secondary">Volver a comprobantes</a>
+</div>

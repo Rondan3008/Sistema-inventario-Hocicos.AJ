@@ -1,0 +1,166 @@
+@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Ropa para tu mejor amigo";
+    var banners = Model.Settings.SecondaryBanners
+        .Where(banner => banner.IsActive && (!string.IsNullOrWhiteSpace(banner.Title) || !string.IsNullOrWhiteSpace(banner.Text)))
+        .ToList();
+}
+
+<div class="storefront">
+    <partial name="_Mensajes" />
+    <section class="storefront-hero" aria-labelledby="home-title">
+        <div class="storefront-hero__copy">
+            <p class="page-eyebrow">HOCICOS A.J. · TIENDA PARA PERROS</p>
+            <h1 id="home-title">@Model.Settings.HeroTitle</h1>
+            <p class="storefront-hero__subtitle">@Model.Settings.HeroSubtitle</p>
+            <a class="btn btn-primary btn-lg" href="@Url.Content(Model.Settings.HeroButtonPath)">@Model.Settings.HeroButtonText</a>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Settings.HeroImagePath) && Url.IsLocalUrl(Model.Settings.HeroImagePath))
+        {
+            <div class="storefront-hero__visual">
+                <img src="@Model.Settings.HeroImagePath" alt="Imagen principal de la tienda" />
+            </div>
+        }
+        else
+        {
+            <div class="storefront-hero__visual storefront-hero__visual--placeholder" aria-hidden="true">
+                <span>HOCICOS<br /><strong>A.J.</strong></span>
+            </div>
+        }
+    </section>
+
+    @if (banners.Count > 0)
+    {
+        <section class="storefront-banners" aria-label="Información destacada">
+            @foreach (var banner in banners)
+            {
+                <article class="storefront-banner">
+                    @if (!string.IsNullOrEmpty(banner.ImagePath) && Url.IsLocalUrl(banner.ImagePath))
+                    {
+                        <img src="@banner.ImagePath" alt="" loading="lazy" />
+                    }
+                    <div class="storefront-banner__copy">
+                        @if (!string.IsNullOrWhiteSpace(banner.Title))
+                        {
+                            <h2>@banner.Title</h2>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(banner.Text))
+                        {
+                            <p>@banner.Text</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(banner.ButtonText))
+                        {
+                            <a class="btn btn-outline-primary" href="@Url.Content(banner.ButtonPath)">@banner.ButtonText</a>
+                        }
+                    </div>
+                </article>
+            }
+        </section>
+    }
+
+    <section class="storefront-section" aria-labelledby="categories-title">
+        <div class="storefront-section__heading">
+            <div>
+                <p class="page-eyebrow">ENCUENTRA LO QUE BUSCAS</p>
+                <h2 id="categories-title">@Model.Settings.CategoriesTitle</h2>
+            </div>
+            <a asp-controller="Productos" asp-action="Index" class="text-link">Ver catálogo</a>
+        </div>
+        @if (Model.Categorias.Count == 0)
+        {
+            <div class="empty-state">Todavía no hay categorías disponibles.</div>
+        }
+        else
+        {
+            <div class="category-grid">
+                @foreach (var categoria in Model.Categorias)
+                {
+                    var imagePath = Model.Settings.CategoryImagePaths.GetValueOrDefault(categoria.Idcategoria);
+                    <a class="category-tile" asp-controller="Productos" asp-action="Index" asp-route-categoriaId="@categoria.Idcategoria">
+                        @if (!string.IsNullOrEmpty(imagePath) && Url.IsLocalUrl(imagePath))
+                        {
+                            <img src="@imagePath" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="category-tile__placeholder" aria-hidden="true">@categoria.NombreCategoria.FirstOrDefault()</span>
+                        }
+                        <span class="category-tile__name">@categoria.NombreCategoria</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="storefront-section" aria-labelledby="featured-title">
+        <div class="storefront-section__heading">
+            <div>
+                <p class="page-eyebrow">DISPONIBILIDAD ACTUAL</p>
+                <h2 id="featured-title">@Model.Settings.FeaturedTitle</h2>
+            </div>
+            <a asp-controller="Productos" asp-action="Index" class="text-link">Explorar todos</a>
+        </div>
+        @if (Model.Productos.Count == 0)
+        {
+            <div class="empty-state">No hay productos disponibles para mostrar en este momento.</div>
+        }
+        else
+        {
+            <div class="row g-4 product-grid">
+                @foreach (var producto in Model.Productos)
+                {
+                    <div class="col-sm-6 col-xl-4">
+                        <article class="card product-card h-100">
+                            @if (!string.IsNullOrWhiteSpace(producto.Imagen) && Url.IsLocalUrl(producto.Imagen))
+                            {
+                                <img src="@producto.Imagen" class="product-card__image" alt="@producto.Nombre" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="product-card__placeholder" aria-label="Imagen no disponible">Imagen no disponible</div>
+                            }
+                            <div class="card-body">
+                                <p class="product-card__category">@producto.CategoriaIdcategoriaNavigation.NombreCategoria</p>
+                                <h3 class="card-title">@producto.Nombre</h3>
+                                @if (!string.IsNullOrWhiteSpace(producto.Descripción))
+                                {
+                                    <p class="card-text product-card__description">@producto.Descripción</p>
+                                }
+                                <div class="product-card__details">
+                                    <span><strong>Talla</strong> @producto.Talla</span>
+                                    <span><strong>Disponibles</strong> @producto.Stock</span>
+                                </div>
+                                <p class="product-card__price">Bs @producto.Precio.ToString("N2")</p>
+                                @if (User.IsInRole("Cliente"))
+                                {
+                                    <form asp-controller="Carrito" asp-action="Agregar" method="post" asp-antiforgery="true" class="product-card__form">
+                                        <input type="hidden" name="productoId" value="@producto.Idproductos" />
+                                        <div class="input-group">
+                                            <label class="input-group-text" for="cantidad-home-@producto.Idproductos">Cantidad</label>
+                                            <input id="cantidad-home-@producto.Idproductos" type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control" />
+                                            <button type="submit" class="btn btn-primary">Agregar</button>
+                                        </div>
+                                    </form>
+                                }
+                                else if (User.Identity?.IsAuthenticated != true)
+                                {
+                                    <a asp-controller="Home" asp-action="AccesoAdmin" asp-route-ReturnUrl="@Url.Action("Index", "Home")" class="btn btn-secondary w-100">Inicia sesión para comprar</a>
+                                }
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="storefront-info" aria-labelledby="information-title">
+        <div>
+            <p class="page-eyebrow">HOCICOS A.J.</p>
+            <h2 id="information-title">@Model.Settings.InformationTitle</h2>
+            <p>@Model.Settings.InformationText</p>
+        </div>
+        <a asp-controller="Productos" asp-action="Index" class="btn btn-secondary">Ver productos</a>
+    </section>
+</div>

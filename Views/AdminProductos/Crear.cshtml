@@ -1,0 +1,31 @@
+@model ProductoFormViewModel
+
+@{
+    ViewData["Title"] = "Registrar producto";
+}
+
+<div class="container mt-4 admin-content">
+    <h2>Registrar nuevo producto</h2>
+    <p>HOCICOS A.J. - Administración</p>
+
+    @if (ViewBag.Categorias is not null && ((IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Categorias).Any())
+    {
+        <form asp-action="Crear" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+            <partial name="_FormularioCampos" model="Model" />
+            <button type="submit" class="btn btn-primary">Guardar producto</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-warning" role="alert">
+            Registre una categoría antes de crear productos.
+        </div>
+        <a asp-controller="AdminCategorias" asp-action="Crear" class="btn btn-primary">Registrar categoría</a>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

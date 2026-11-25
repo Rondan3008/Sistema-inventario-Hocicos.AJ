@@ -1,0 +1,97 @@
+@model CarritoViewModel
+
+@{
+    ViewData["Title"] = "Carrito";
+}
+
+<div class="container mt-4">
+    <h1>Carrito de compras</h1>
+    <partial name="_Mensajes" />
+
+    @if (Model.Lineas.Count == 0)
+    {
+        <div class="empty-state">
+            <p>Tu carrito está vacío o sus productos ya no están disponibles.</p>
+            <a asp-controller="Productos" asp-action="Index" class="btn btn-primary">Volver al catálogo</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Talla</th>
+                        <th>Precio unitario</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                        <th>Disponibilidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var linea in Model.Lineas)
+                    {
+                        var producto = linea.Producto;
+                        <tr>
+                            <td>@(producto?.Nombre ?? $"Producto {linea.ProductoId}")</td>
+                            <td>@(producto?.Talla ?? "—")</td>
+                            <td>@(producto is null ? "—" : $"Bs {producto.Precio}")</td>
+                            <td>
+                                @if (linea.PuedeActualizar)
+                                {
+                                    <form asp-action="Actualizar" method="post" asp-antiforgery="true" class="d-flex gap-2">
+                                        <input type="hidden" name="productoId" value="@linea.ProductoId" />
+                                        <input type="number" name="cantidad" value="@linea.Cantidad" min="1" max="@producto!.Stock" class="form-control" />
+                                        <button type="submit" class="btn btn-secondary btn-sm">Actualizar</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span>@linea.Cantidad</span>
+                                }
+                            </td>
+                            <td>@(linea.Disponible ? $"Bs {linea.Subtotal}" : "—")</td>
+                            <td>
+                                @if (linea.Disponible)
+                                {
+                                    <span>Disponible (@producto!.Stock unidades)</span>
+                                }
+                                else if (linea.PuedeActualizar)
+                                {
+                                    <span>Cantidad supera el stock disponible (@producto!.Stock unidades)</span>
+                                }
+                                else
+                                {
+                                    <span>No disponible</span>
+                                }
+                            </td>
+                            <td>
+                                <form asp-action="Retirar" method="post" asp-antiforgery="true" onsubmit="return confirm('¿Deseas retirar este producto del carrito?');">
+                                    <input type="hidden" name="productoId" value="@linea.ProductoId" />
+                                    <button type="submit" class="btn btn-secondary btn-sm">Retirar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-end">Total disponible</th>
+                        <th>Bs @Model.Total</th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <a asp-controller="Productos" asp-action="Index" class="btn btn-secondary">Seguir comprando</a>
+        @if (Model.PuedeConfirmar)
+        {
+            <form asp-controller="Compras" asp-action="Confirmar" method="post" asp-antiforgery="true" class="d-inline" onsubmit="return confirm('¿Confirmas la compra? El stock disponible se actualizará.');">
+                <input type="hidden" name="claveIdempotencia" value="@Model.ClaveIdempotencia" />
+                <button type="submit" class="btn btn-primary">Confirmar compra</button>
+            </form>
+        }
+    }
+</div>

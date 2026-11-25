@@ -1,0 +1,79 @@
+
+@model IEnumerable<HocicosAJ.Models.Database.Producto>
+
+@{
+    ViewData["Title"] = "Administrar productos";
+}
+
+<div class="container mt-4">
+    <h1>Administración de productos</h1>
+
+    <p>Gestiona los productos de HOCICOS A.J.</p>
+    <partial name="_Mensajes" />
+    <a asp-action="Crear" class="btn btn-primary mb-3">Registrar producto</a>
+    <a asp-controller="AdminCategorias" asp-action="Index" class="btn btn-secondary mb-3">Administrar categorías</a>
+
+    <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Imagen</th>
+                <th>Categoría</th>
+                <th>Descripción</th>
+                <th>Talla</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var producto in Model)
+            {
+                <tr>
+                    <td>@producto.Nombre</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(producto.Imagen) && Url.IsLocalUrl(producto.Imagen))
+                        {
+                            <img src="@producto.Imagen" class="admin-product-thumbnail" alt="Imagen de @producto.Nombre" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span>Sin imagen</span>
+                        }
+                    </td>
+                    <td>@producto.CategoriaIdcategoriaNavigation.NombreCategoria</td>
+                    <td>@producto.Descripción</td>
+                    <td>@producto.Talla</td>
+                    <td>Bs @producto.Precio</td>
+                    <td>@producto.Stock</td>
+                    <td>@(producto.Activo ? "Activo" : "Inactivo")</td>
+                    <td>
+                        <a asp-action="Editar" asp-route-id="@producto.Idproductos" class="btn btn-secondary btn-sm">Editar</a>
+                        @if (producto.Activo)
+                        {
+                            <form asp-action="Desactivar" asp-route-id="@producto.Idproductos" method="post" asp-antiforgery="true" class="d-inline" onsubmit="return confirm('¿Desea desactivar este producto?');">
+                                <button type="submit" class="btn btn-secondary btn-sm">Desactivar</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="d-block mb-1">Inactivo</span>
+                            <form asp-action="Activar" asp-route-id="@producto.Idproductos" method="post" asp-antiforgery="true" class="d-inline" onsubmit="return confirm('¿Desea reactivar este producto?');">
+                                <button type="submit" class="btn btn-secondary btn-sm">Reactivar</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="9" class="text-center">No hay productos registrados.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+</div>

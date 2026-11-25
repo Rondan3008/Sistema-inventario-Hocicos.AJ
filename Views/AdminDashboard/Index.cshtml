@@ -1,0 +1,135 @@
+@model AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Resumen";
+}
+
+<section class="admin-dashboard">
+    <div class="admin-welcome">
+        <div>
+            <p class="page-eyebrow">VISTA GENERAL</p>
+            <h2>Tu tienda, en un vistazo</h2>
+            <p>Indicadores obtenidos de los registros actuales del sistema.</p>
+        </div>
+        @if (ViewData["DashboardImagePath"] is string dashboardImage && Url.IsLocalUrl(dashboardImage))
+        {
+            <img class="admin-dashboard__visual" src="@dashboardImage" alt="Imagen decorativa del panel" />
+        }
+        else
+        {
+            <div class="admin-dashboard__visual admin-dashboard__visual--placeholder" aria-hidden="true">HOCICOS A.J.</div>
+        }
+    </div>
+
+    <div class="admin-metric-grid">
+        <article class="admin-metric">
+            <span>Productos activos</span>
+            <strong>@Model.ProductosActivos.ToString("N0")</strong>
+            <a asp-controller="AdminProductos" asp-action="Index">Administrar productos</a>
+        </article>
+        <article class="admin-metric admin-metric--warning">
+            <span>Productos activos sin stock</span>
+            <strong>@Model.ProductosSinStock.ToString("N0")</strong>
+            <a asp-controller="AdminProductos" asp-action="Index">Revisar inventario</a>
+        </article>
+        <article class="admin-metric">
+            <span>Categorías activas</span>
+            <strong>@Model.CategoriasActivas.ToString("N0")</strong>
+            <a asp-controller="AdminCategorias" asp-action="Index">Administrar categorías</a>
+        </article>
+        <article class="admin-metric">
+            <span>Usuarios registrados</span>
+            <strong>@Model.UsuariosRegistrados.ToString("N0")</strong>
+            <a asp-controller="AdminUsuarios" asp-action="Index">Ver usuarios</a>
+        </article>
+        <article class="admin-metric">
+            <span>Compras registradas · últimos 30 días</span>
+            <strong>@Model.ComprasUltimos30Dias.ToString("N0")</strong>
+            <a asp-controller="AdminCompras" asp-action="Index">Ver pedidos</a>
+        </article>
+        <article class="admin-metric">
+            <span>Importe registrado · últimos 30 días</span>
+            <strong>Bs @Model.ImporteRegistradoUltimos30Dias.ToString("N2")</strong>
+            <small>No confirma pagos recibidos.</small>
+        </article>
+    </div>
+
+    <section class="admin-quick-links" aria-labelledby="quick-links-heading">
+        <div class="admin-section-heading">
+            <div>
+                <p class="page-eyebrow">ACCESOS DIRECTOS</p>
+                <h2 id="quick-links-heading">Gestión de la tienda</h2>
+            </div>
+        </div>
+        <div class="admin-quick-links__grid">
+            <a asp-controller="AdminProductos" asp-action="Index">Productos</a>
+            <a asp-controller="AdminCategorias" asp-action="Index">Categorías</a>
+            <a asp-controller="AdminCompras" asp-action="Index">Pedidos</a>
+            <a asp-controller="AdminUsuarios" asp-action="Index">Usuarios</a>
+            <a asp-controller="AdminComprobantes" asp-action="Index">Comprobantes</a>
+            <a asp-controller="AdminEstadisticas" asp-action="Index">Estadísticas</a>
+            <a asp-controller="AdminPersonalizacion" asp-action="Index">Personalización de la tienda</a>
+        </div>
+    </section>
+
+    <div class="row g-4 admin-dashboard__charts">
+        <div class="col-xl-7">
+            <section class="admin-panel-card h-100" aria-labelledby="orders-chart-title">
+                <h2 id="orders-chart-title">Compras registradas por período</h2>
+                <p class="text-muted">Últimos 30 días. No representa pagos confirmados.</p>
+                @if (Model.Estadisticas.VentasPorPeriodo.Count == 0)
+                {
+                    <div class="empty-state">No hay compras registradas en este período.</div>
+                }
+                else
+                {
+                    <div class="dashboard-chart" role="img" aria-label="Gráfico de compras registradas por período">
+                        @foreach (var barra in Model.Estadisticas.VentasPorPeriodo)
+                        {
+                            <div class="dashboard-chart__item">
+                                <span class="dashboard-chart__value">@barra.ValorFormateado</span>
+                                <div class="dashboard-chart__track">
+                                    <span class="dashboard-chart__bar" style="height:@(Math.Max(4, barra.AlturaPixels))px"></span>
+                                </div>
+                                <span class="dashboard-chart__label">@barra.Etiqueta</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-xl-5">
+            <section class="admin-panel-card h-100" aria-labelledby="inventory-title">
+                <div class="admin-section-heading">
+                    <div>
+                        <h2 id="inventory-title">Menor stock disponible</h2>
+                        <p class="text-muted">Productos activos con existencias, ordenados por stock.</p>
+                    </div>
+                    <a asp-controller="AdminProductos" asp-action="Index">Ver inventario</a>
+                </div>
+                @if (Model.InventarioBajo.Count == 0)
+                {
+                    <div class="empty-state">No hay productos activos con stock disponible.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead><tr><th>Producto</th><th>Categoría</th><th>Unidades</th></tr></thead>
+                            <tbody>
+                                @foreach (var producto in Model.InventarioBajo)
+                                {
+                                    <tr>
+                                        <td>@producto.Nombre</td>
+                                        <td>@producto.Categoria</td>
+                                        <td><strong>@producto.Stock</strong></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

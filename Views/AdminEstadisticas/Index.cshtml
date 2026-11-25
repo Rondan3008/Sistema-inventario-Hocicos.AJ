@@ -1,0 +1,698 @@
+@model AdminEstadisticasViewModel
+
+@{
+    ViewData["Title"] = "Estadísticas";
+}
+
+<div class="container mt-4">
+    <h1>Estadísticas</h1>
+    <p>
+        Resumen descriptivo de todas las compras registradas, incluidas las que están Pendientes.
+        Los importes reflejan datos de <code>compras.total</code> y no confirman que se haya recibido
+        un pago.
+    </p>
+
+    <form asp-action="Index" method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label asp-for="Filtros.Desde" class="form-label">Desde</label>
+            <input asp-for="Filtros.Desde" type="date" class="form-control" />
+            <span asp-validation-for="Filtros.Desde" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.Hasta" class="form-label">Hasta</label>
+            <input asp-for="Filtros.Hasta" type="date" class="form-control" />
+            <span asp-validation-for="Filtros.Hasta" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.Percentil" class="form-label">Percentil (0-100)</label>
+            <input asp-for="Filtros.Percentil" type="number" min="0" max="100" class="form-control" />
+            <span asp-validation-for="Filtros.Percentil" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.K" class="form-label">k para Poisson (0-1000)</label>
+            <input asp-for="Filtros.K" type="number" min="0" max="1000" class="form-control" />
+            <span asp-validation-for="Filtros.K" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.MediaNormalTeorica" class="form-label">Media normal teórica (Bs)</label>
+            <input asp-for="Filtros.MediaNormalTeorica" type="number" min="0" step="any" class="form-control" />
+            <span asp-validation-for="Filtros.MediaNormalTeorica" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.DesviacionNormalTeorica" class="form-label">Desviación normal teórica (Bs)</label>
+            <input asp-for="Filtros.DesviacionNormalTeorica" type="number" min="0.000000000001" step="any" class="form-control" />
+            <span asp-validation-for="Filtros.DesviacionNormalTeorica" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.UmbralNormal" class="form-label">Umbral normal (Bs)</label>
+            <input asp-for="Filtros.UmbralNormal" type="number" min="0" step="any" class="form-control" />
+            <span asp-validation-for="Filtros.UmbralNormal" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.TasaExponencialTeorica" class="form-label">Tasa exponencial teórica (por hora)</label>
+            <input asp-for="Filtros.TasaExponencialTeorica" type="number" min="0.000000000001" step="any" class="form-control" />
+            <span asp-validation-for="Filtros.TasaExponencialTeorica" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.TiempoEsperaHoras" class="form-label">Tiempo de consulta (horas)</label>
+            <input asp-for="Filtros.TiempoEsperaHoras" type="number" min="0" step="any" class="form-control" />
+            <span asp-validation-for="Filtros.TiempoEsperaHoras" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 align-self-end">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a asp-action="Index" class="btn btn-secondary">Limpiar filtro</a>
+        </div>
+        <div asp-validation-summary="All" class="text-danger"></div>
+    </form>
+
+    @if (Model.NumeroCompras == 0)
+    {
+        <div class="alert alert-secondary" role="status">
+            No hay compras registradas en el período seleccionado.
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Ingresos registrados</h2>
+                    <p class="card-text fs-4">
+                        @(Model.TotalIngresos.HasValue ? $"Bs {Model.TotalIngresos.Value:N2}" : "No disponible")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Número de compras</h2>
+                    <p class="card-text fs-4">@Model.NumeroCompras.ToString("N0")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Unidades en compras registradas</h2>
+                    <p class="card-text fs-4">
+                        @(Model.TieneDetalles ? Model.UnidadesVendidas.ToString("N0") : "No disponible")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Importe promedio por compra</h2>
+                    <p class="card-text fs-4">
+                        @(Model.ImportePromedio.HasValue ? $"Bs {Model.ImportePromedio.Value:N2}" : "No disponible")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Producto con más unidades registradas</h2>
+                    <p class="card-text">
+                        @(Model.ProductoMasVendido is null
+                            ? "No disponible"
+                            : $"{Model.ProductoMasVendido} — {Model.UnidadesProductoMasVendido:N0} unidades")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Categoría con más unidades registradas</h2>
+                    <p class="card-text">
+                        @(Model.CategoriaMasVendida is null
+                            ? "No disponible"
+                            : $"{Model.CategoriaMasVendida} — {Model.UnidadesCategoriaMasVendida:N0} unidades")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="mb-4">
+        <h2>Medidas descriptivas de los importes</h2>
+        @if (Model.NumeroCompras == 0)
+        {
+            <p>No disponible: no hay importes para analizar.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Medida</th>
+                            <th>Resultado</th>
+                            <th>Interpretación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Media</th>
+                            <td>Bs @Model.Media!.Value.ToString("N2")</td>
+                            <td>Promedio aritmético de los importes registrados.</td>
+                        </tr>
+                        <tr>
+                            <th>Mediana</th>
+                            <td>Bs @Model.Mediana!.Value.ToString("N2")</td>
+                            <td>Valor central de los importes ordenados.</td>
+                        </tr>
+                        <tr>
+                            <th>Cuartiles Q1, Q2 y Q3</th>
+                            <td>
+                                Bs @Model.PrimerCuartil!.Value.ToString("N2");
+                                Bs @Model.Mediana!.Value.ToString("N2");
+                                Bs @Model.TercerCuartil!.Value.ToString("N2")
+                            </td>
+                            <td>Percentiles 25, 50 y 75 calculados con interpolación lineal R-7.</td>
+                        </tr>
+                        <tr>
+                            <th>Percentil @Model.Filtros.Percentil</th>
+                            <td>
+                                @(Model.PercentilSeleccionado.HasValue
+                                    ? $"Bs {Model.PercentilSeleccionado.Value:N2}"
+                                    : "No disponible")
+                            </td>
+                            <td>Interpolación lineal R-7 sobre los importes ordenados.</td>
+                        </tr>
+                        <tr>
+                            <th>Moda</th>
+                            <td>
+                                @(Model.Modas.Count == 0
+                                    ? "No disponible: no hay importes repetidos."
+                                    : string.Join(", ", Model.Modas.Select(importe => $"Bs {importe:N2}")))
+                            </td>
+                            <td>Importe(s) con la frecuencia exacta máxima; se muestran todos los empates.</td>
+                        </tr>
+                        <tr>
+                            <th>Rango</th>
+                            <td>Bs @Model.Rango!.Value.ToString("N2")</td>
+                            <td>Importe máximo menos importe mínimo.</td>
+                        </tr>
+                        <tr>
+                            <th>Varianza poblacional</th>
+                            <td>@Model.VarianzaPoblacional!.Value.ToString("N4") Bs²</td>
+                            <td>Dispersión de todas las compras incluidas; divisor N.</td>
+                        </tr>
+                        <tr>
+                            <th>Desviación estándar poblacional</th>
+                            <td>@Model.DesviacionEstandarPoblacional!.Value.ToString("N4") Bs</td>
+                            <td>Raíz cuadrada de la varianza poblacional.</td>
+                        </tr>
+                        <tr>
+                            <th>Varianza muestral</th>
+                            <td>
+                                @(Model.VarianzaMuestral.HasValue
+                                    ? $"{Model.VarianzaMuestral.Value:N4} Bs²"
+                                    : "No disponible: se requieren al menos dos compras.")
+                            </td>
+                            <td>Estimación muestral; divisor N − 1.</td>
+                        </tr>
+                        <tr>
+                            <th>Desviación estándar muestral</th>
+                            <td>
+                                @(Model.DesviacionEstandarMuestral.HasValue
+                                    ? $"{Model.DesviacionEstandarMuestral.Value:N4} Bs"
+                                    : "No disponible: se requieren al menos dos compras.")
+                            </td>
+                            <td>Raíz cuadrada de la varianza muestral.</td>
+                        </tr>
+                        <tr>
+                            <th>Coeficiente de variación poblacional</th>
+                            <td>
+                                @(Model.CoeficienteVariacionPorcentual.HasValue
+                                    ? $"{Model.CoeficienteVariacionPorcentual.Value:N2}%"
+                                    : "No disponible: la media es cero.")
+                            </td>
+                            <td>Desviación estándar poblacional ÷ valor absoluto de la media × 100.</td>
+                        </tr>
+                        <tr>
+                            <th>Asimetría poblacional</th>
+                            <td>
+                                @(Model.AsimetriaPoblacional.HasValue
+                                    ? Model.AsimetriaPoblacional.Value.ToString("N4")
+                                    : "No disponible: se requiere varianza positiva.")
+                            </td>
+                            <td>Momento central de orden 3 dividido por σ³; signo positivo indica cola derecha.</td>
+                        </tr>
+                        <tr>
+                            <th>Curtosis poblacional (exceso)</th>
+                            <td>
+                                @(Model.CurtosisExcesoPoblacional.HasValue
+                                    ? Model.CurtosisExcesoPoblacional.Value.ToString("N4")
+                                    : "No disponible: se requiere varianza positiva.")
+                            </td>
+                            <td>m₄/σ⁴ − 3; cero corresponde a la referencia normal teórica.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="mb-4" id="admin-estadisticas-graficas"
+             data-endpoint="@Url.Action("Graficas", "AdminEstadisticas")">
+        <h2>Gráficas de compras registradas</h2>
+        <p>
+            Se incluyen las compras registradas en el período, también las que están Pendientes.
+            Estos importes no confirman pagos recibidos ni representan ingresos efectivamente percibidos.
+        </p>
+        <p id="admin-estadisticas-cargando" class="small text-muted" role="status">
+            Consultando compras registradas...
+        </p>
+        <div id="admin-estadisticas-error" class="alert alert-danger d-none" role="alert"></div>
+        <div class="row g-3">
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Unidades registradas por producto</h3>
+                        <p class="small text-muted">Unidades asociadas a compras registradas.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-unidades-producto" data-chart-canvas="unidadesPorProducto" role="img"
+                                    aria-label="Gráfico de barras de unidades registradas por producto"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="unidadesPorProducto" hidden>
+                            No hay detalles de compra para mostrar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Importe registrado por producto (Bs)</h3>
+                        <p class="small text-muted">Suma de subtotales de detalle; no confirma pagos recibidos.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-importe-producto" data-chart-canvas="importePorProducto" role="img"
+                                    aria-label="Gráfico de barras de importes registrados por producto"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="importePorProducto" hidden>
+                            No hay importes de detalle para mostrar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Participación del importe por categoría</h3>
+                        <p class="small text-muted">Porcentaje calculado sobre los subtotales registrados.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-categoria" data-chart-canvas="participacionPorCategoria" role="img"
+                                    aria-label="Gráfico circular de participación porcentual por categoría"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="participacionPorCategoria" hidden>
+                            No hay importes de detalle suficientes para calcular porcentajes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Histograma de importes por compra (Bs)</h3>
+                        <p class="small text-muted">Frecuencia de compras registradas por intervalo de importe.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-histograma" data-chart-canvas="histogramaImportes" role="img"
+                                    aria-label="Histograma de importes de compras registradas"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="histogramaImportes" hidden>
+                            No hay importes de compra para graficar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Compras registradas por fecha</h3>
+                        <p class="small text-muted">Cantidad de compras por día o mes, según el período seleccionado.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-compras-fecha" data-chart-canvas="comprasPorFecha" role="img"
+                                    aria-label="Gráfico de líneas de compras registradas por fecha"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="comprasPorFecha" hidden>
+                            No hay compras registradas en el período seleccionado.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="h5">Frecuencia de métodos en comprobantes</h3>
+                        <p class="small text-muted">Métodos consignados en comprobantes; no acreditan que el pago se haya recibido.</p>
+                        <div class="position-relative" style="height: 320px;">
+                            <canvas id="grafica-metodos-pago" data-chart-canvas="metodosPago" role="img"
+                                    aria-label="Gráfico de frecuencia de métodos consignados en comprobantes"></canvas>
+                        </div>
+                        <p class="small text-muted mb-0" data-chart-empty="metodosPago" hidden>
+                            No hay comprobantes asociados a compras del período.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-4">
+        <h2>Diagrama de caja de importes</h2>
+        @if (Model.DiagramaCaja is null)
+        {
+            <p>No disponible: no hay importes para resumir.</p>
+        }
+        else
+        {
+            <svg viewBox="0 0 800 100" class="w-100" role="img" aria-label="Diagrama de caja de importes">
+                <line x1="@Model.DiagramaCaja.BigoteInferiorX" y1="50"
+                      x2="@Model.DiagramaCaja.BigoteSuperiorX" y2="50"
+                      stroke="var(--hocicos-azul)" stroke-width="3" />
+                <line x1="@Model.DiagramaCaja.BigoteInferiorX" y1="38"
+                      x2="@Model.DiagramaCaja.BigoteInferiorX" y2="62"
+                      stroke="var(--hocicos-azul)" stroke-width="3" />
+                <line x1="@Model.DiagramaCaja.BigoteSuperiorX" y1="38"
+                      x2="@Model.DiagramaCaja.BigoteSuperiorX" y2="62"
+                      stroke="var(--hocicos-azul)" stroke-width="3" />
+                <rect x="@Model.DiagramaCaja.CajaInicioX" y="30"
+                      width="@(Model.DiagramaCaja.CajaFinX - Model.DiagramaCaja.CajaInicioX)" height="40"
+                      fill="var(--hocicos-naranja)" fill-opacity="0.35"
+                      stroke="var(--hocicos-naranja)" stroke-width="3" />
+                <line x1="@Model.DiagramaCaja.MedianaX" y1="30"
+                      x2="@Model.DiagramaCaja.MedianaX" y2="70"
+                      stroke="var(--hocicos-azul)" stroke-width="3" />
+                @foreach (var x in Model.DiagramaCaja.ValoresAtipicosX)
+                {
+                    <circle cx="@x" cy="50" r="5" fill="var(--hocicos-naranja)" />
+                }
+            </svg>
+            <p>
+                Mínimo: Bs @Model.DiagramaCaja.Minimo.ToString("N2");
+                bigotes: Bs @Model.DiagramaCaja.BigoteInferior.ToString("N2") a Bs @Model.DiagramaCaja.BigoteSuperior.ToString("N2");
+                Q1: Bs @Model.DiagramaCaja.PrimerCuartil.ToString("N2");
+                mediana: Bs @Model.DiagramaCaja.Mediana.ToString("N2");
+                Q3: Bs @Model.DiagramaCaja.TercerCuartil.ToString("N2");
+                máximo: Bs @Model.DiagramaCaja.Maximo.ToString("N2").
+                Valores atípicos según las cercas de Tukey: @Model.DiagramaCaja.ValoresAtipicos.Count.
+            </p>
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Probabilidades empíricas</h2>
+        <p>Espacio muestral: compras del período seleccionado (N = @Model.AnalisisProbabilistico.Probabilidades.EspacioMuestral).</p>
+        <p>
+            A: @Model.AnalisisProbabilistico.Probabilidades.DescripcionEventoA
+            @if (Model.AnalisisProbabilistico.Probabilidades.UmbralImporte.HasValue)
+            {
+                <span> Umbral: Bs @Model.AnalisisProbabilistico.Probabilidades.UmbralImporte.Value.ToString("N2").</span>
+            }
+        </p>
+        <p>
+            B: @Model.AnalisisProbabilistico.Probabilidades.DescripcionEventoB
+            @if (Model.AnalisisProbabilistico.Probabilidades.CategoriasEventoB is not null)
+            {
+                <span> Categoría(s): @Model.AnalisisProbabilistico.Probabilidades.CategoriasEventoB.</span>
+            }
+        </p>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr><th>Probabilidad</th><th>Resultado</th><th>Fórmula / interpretación</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>P(A)</th>
+                        <td>@(Model.AnalisisProbabilistico.Probabilidades.ProbabilidadA?.ToString("P2") ?? "No disponible")</td>
+                        <td>Compras de A ÷ N.</td>
+                    </tr>
+                    <tr>
+                        <th>P(B)</th>
+                        <td>@(Model.AnalisisProbabilistico.Probabilidades.ProbabilidadB?.ToString("P2") ?? "No disponible")</td>
+                        <td>Compras de B ÷ N.</td>
+                    </tr>
+                    <tr>
+                        <th>P(A ∩ B)</th>
+                        <td>@(Model.AnalisisProbabilistico.Probabilidades.ProbabilidadInterseccion?.ToString("P2") ?? "No disponible")</td>
+                        <td>Compras que cumplen ambos eventos ÷ N.</td>
+                    </tr>
+                    <tr>
+                        <th>P(A | B)</th>
+                        <td>@(Model.AnalisisProbabilistico.Probabilidades.ProbabilidadCondicional?.ToString("P2") ?? "No disponible")</td>
+                        <td>Compras de A ∩ B ÷ compras de B; no disponible si B no ocurrió.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        @section Scripts {
+            <script src="~/lib/chart.js/chart.umd.js" asp-append-version="true"></script>
+            <script src="~/js/admin-estadisticas.js" asp-append-version="true"></script>
+        }
+        @if (Model.AnalisisProbabilistico.Probabilidades.Grafico.Count > 0)
+        {
+            <div class="d-flex align-items-end gap-3 overflow-auto pb-2"
+                 role="img" aria-label="Visualización de probabilidades empíricas">
+                @foreach (var barra in Model.AnalisisProbabilistico.Probabilidades.Grafico)
+                {
+                    <div class="d-flex flex-column align-items-center justify-content-end text-center"
+                         style="min-width: 90px; height: 220px;" title="@($"{barra.Etiqueta}: {barra.Porcentaje}")">
+                        <small>@barra.Porcentaje</small>
+                        <div class="rounded-top" aria-hidden="true"
+                             style="width: 40px; height: @(barra.AlturaPixels)px; background-color: var(--hocicos-naranja);"></div>
+                        <small>@barra.Etiqueta</small>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p>No disponible: se requieren compras y detalles asociados para definir ambos eventos.</p>
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Distribución de Poisson: compras por @Model.AnalisisProbabilistico.Poisson.Periodo</h2>
+        @if (!Model.AnalisisProbabilistico.Poisson.Disponible)
+        {
+            <p>No disponible: @Model.AnalisisProbabilistico.Poisson.Advertencia</p>
+        }
+        else
+        {
+            <p>
+                λ = @Model.AnalisisProbabilistico.Poisson.Lambda!.Value.ToString("N4");
+                E(X) = @Model.AnalisisProbabilistico.Poisson.ValorEsperado!.Value.ToString("N4");
+                Var(X) = @Model.AnalisisProbabilistico.Poisson.VarianzaTeorica!.Value.ToString("N4");
+                varianza empírica por período =
+                @(Model.AnalisisProbabilistico.Poisson.VarianzaEmpirica?.ToString("N4") ?? "No disponible").
+            </p>
+            <p>
+                P(X = @Model.AnalisisProbabilistico.Poisson.K) =
+                @Model.AnalisisProbabilistico.Poisson.ProbabilidadExacta!.Value.ToString("P4");
+                P(X ≤ @Model.AnalisisProbabilistico.Poisson.K) =
+                @Model.AnalisisProbabilistico.Poisson.ProbabilidadMenorIgual!.Value.ToString("P4");
+                P(X ≥ @Model.AnalisisProbabilistico.Poisson.K) =
+                @Model.AnalisisProbabilistico.Poisson.ProbabilidadMayorIgual!.Value.ToString("P4").
+            </p>
+            <p>Conteos observados: @Model.AnalisisProbabilistico.Poisson.ComprasObservadas en @Model.AnalisisProbabilistico.Poisson.PeriodosObservados períodos, incluidos los períodos sin compras.</p>
+            <p class="small text-muted">@Model.AnalisisProbabilistico.Poisson.Advertencia</p>
+            @if (Model.AnalisisProbabilistico.Poisson.PeriodosDelGraficoRecortados)
+            {
+                <p class="small text-muted">El gráfico se limita a k = 0–60 para mantener una visualización legible.</p>
+            }
+            @if (Model.AnalisisProbabilistico.Poisson.Grafico.Count > 0)
+            {
+                <div class="d-flex align-items-end gap-2 overflow-auto pb-2"
+                     role="img" aria-label="Distribución de Poisson para compras por período">
+                    @foreach (var barra in Model.AnalisisProbabilistico.Poisson.Grafico)
+                    {
+                        <div class="d-flex flex-column align-items-center justify-content-end text-center"
+                             style="min-width: 42px; height: 220px;" title="@($"{barra.Etiqueta}: {barra.Porcentaje}")">
+                            <small>@barra.Porcentaje</small>
+                            <div class="rounded-top" aria-hidden="true"
+                                 style="width: 25px; height: @(barra.AlturaPixels)px; background-color: var(--hocicos-azul);"></div>
+                            <small>@barra.Etiqueta</small>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Distribución normal de importes (teórica)</h2>
+        <p>@Model.AnalisisProbabilistico.DistribucionesContinuas.Normal.Advertencia</p>
+        @if (Model.AnalisisProbabilistico.DistribucionesContinuas.Normal.Calculada)
+        {
+            var normal = Model.AnalisisProbabilistico.DistribucionesContinuas.Normal;
+            <p>
+                μ = Bs @normal.Media!.Value.ToString("N2");
+                σ = Bs @normal.DesviacionEstandar!.Value.ToString("N2");
+                x = Bs @normal.Umbral!.Value.ToString("N2");
+                Z = @normal.Z!.Value.ToString("N4").
+            </p>
+            <p>
+                P(X ≤ x) = @normal.ProbabilidadMenorIgual!.Value.ToString("P4");
+                P(X ≥ x) = @normal.ProbabilidadMayorIgual!.Value.ToString("P4");
+                percentil @Model.Filtros.Percentil =
+                @(normal.PercentilSeleccionado.HasValue
+                    ? $"Bs {normal.PercentilSeleccionado.Value:N2}"
+                    : "No definido para percentiles 0 o 100").
+            </p>
+            <p>Intervalo teórico central del 95%: Bs @normal.LimiteInferior95!.Value.ToString("N2") a Bs @normal.LimiteSuperior95!.Value.ToString("N2").</p>
+            @if (normal.Grafico is not null)
+            {
+                var puntos = string.Join(" ", normal.Grafico.Puntos.Select(punto => $"{punto.X},{punto.Y}"));
+                <svg viewBox="0 0 800 250" class="w-100" role="img" aria-label="Curva de densidad normal teórica">
+                    <line x1="40" y1="220" x2="760" y2="220" stroke="var(--hocicos-azul)" />
+                    <polyline points="@puntos" fill="none" stroke="var(--hocicos-naranja)" stroke-width="3" />
+                    <text x="40" y="245">@normal.Grafico.EtiquetaMinimo</text>
+                    <text x="680" y="245">@normal.Grafico.EtiquetaMaximo</text>
+                </svg>
+            }
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Distribución exponencial de tiempos entre compras</h2>
+        <p>@Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial.Advertencia</p>
+        <p>
+            Intervalos observados disponibles: @Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial.IntervalosEntreCompras.
+            @if (Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial.FuenteParametro is not null)
+            {
+                <span> Parámetro: @Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial.FuenteParametro</span>
+            }
+        </p>
+        @if (Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial.Calculada)
+        {
+            var exponencial = Model.AnalisisProbabilistico.DistribucionesContinuas.Exponencial;
+            <p>
+                λ = @exponencial.TasaPorHora!.Value.ToString("N6") por hora;
+                E(T) = @exponencial.MediaEsperaHoras!.Value.ToString("N2") horas.
+            </p>
+            <p>
+                P(T ≤ @exponencial.TiempoConsultaHoras.ToString("N2") horas) =
+                @exponencial.ProbabilidadHastaTiempo!.Value.ToString("P4");
+                percentil @Model.Filtros.Percentil =
+                @(exponencial.PercentilSeleccionadoHoras.HasValue
+                    ? $"{exponencial.PercentilSeleccionadoHoras.Value:N2} horas"
+                    : "No definido para percentil 100").
+            </p>
+            <p>Intervalo teórico central del 95%: @exponencial.LimiteInferior95Horas!.Value.ToString("N2") a @exponencial.LimiteSuperior95Horas!.Value.ToString("N2") horas.</p>
+            @if (exponencial.Grafico is not null)
+            {
+                var puntos = string.Join(" ", exponencial.Grafico.Puntos.Select(punto => $"{punto.X},{punto.Y}"));
+                <svg viewBox="0 0 800 250" class="w-100" role="img" aria-label="Curva de densidad exponencial">
+                    <line x1="40" y1="220" x2="760" y2="220" stroke="var(--hocicos-azul)" />
+                    <polyline points="@puntos" fill="none" stroke="var(--hocicos-naranja)" stroke-width="3" />
+                    <text x="40" y="245">@exponencial.Grafico.EtiquetaMinimo</text>
+                    <text x="680" y="245">@exponencial.Grafico.EtiquetaMaximo</text>
+                </svg>
+            }
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Tabla de frecuencias de importes</h2>
+        @if (Model.FrecuenciasImportes.Count == 0)
+        {
+            <p>No disponible: no hay importes para agrupar.</p>
+        }
+        else
+        {
+            <p>
+                Los intervalos se construyen con la regla de Sturges:
+                k = ⌈1 + log₂(N)⌉. El último intervalo incluye su límite superior.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Intervalo (Bs)</th>
+                            <th>Frecuencia</th>
+                            <th>Frecuencia relativa</th>
+                            <th>Frecuencia acumulada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var fila in Model.FrecuenciasImportes)
+                        {
+                            <tr>
+                                <td>@fila.Intervalo</td>
+                                <td>@fila.Frecuencia</td>
+                                <td>@fila.FrecuenciaRelativaPorcentual.ToString("N2")%</td>
+                                <td>@fila.FrecuenciaAcumulada</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Ingresos registrados por período</h2>
+        <p>Granularidad: @Model.GranularidadVentas.</p>
+        @if (Model.VentasPorPeriodo.Count == 0)
+        {
+            <p>No disponible: no hay compras en el período.</p>
+        }
+        else
+        {
+            <div class="d-flex align-items-end gap-3 overflow-auto pb-2"
+                 role="img"
+                 aria-label="Gráfico de ingresos registrados por período">
+                @foreach (var barra in Model.VentasPorPeriodo)
+                {
+                    <div class="d-flex flex-column align-items-center justify-content-end text-center"
+                         style="min-width: 82px; height: 250px;"
+                         title="@($"{barra.Etiqueta}: Bs {barra.Valor:N2}")">
+                        <small>@barra.ValorFormateado</small>
+                        <div class="rounded-top"
+                             aria-hidden="true"
+                             style="width: 36px; height: @(barra.AlturaPixels)px; background-color: var(--hocicos-azul);"></div>
+                        <small class="text-truncate w-100">@barra.Etiqueta</small>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="mb-4">
+        <h2>Unidades registradas por categoría</h2>
+        @if (Model.VentasPorCategoria.Count == 0)
+        {
+            <p>No disponible: no hay detalles de compra.</p>
+        }
+        else
+        {
+            <div class="d-flex align-items-end gap-3 overflow-auto pb-2"
+                 role="img"
+                 aria-label="Gráfico de unidades registradas por categoría">
+                @foreach (var barra in Model.VentasPorCategoria)
+                {
+                    <div class="d-flex flex-column align-items-center justify-content-end text-center"
+                         style="min-width: 100px; height: 250px;"
+                         title="@($"{barra.Etiqueta}: {barra.Valor:N0} unidades")">
+                        <small>@barra.ValorFormateado</small>
+                        <div class="rounded-top"
+                             aria-hidden="true"
+                             style="width: 44px; height: @(barra.AlturaPixels)px; background-color: var(--hocicos-naranja);"></div>
+                        <small class="text-truncate w-100">@barra.Etiqueta</small>
+                    </div>
+                }
+            </div>
+        }
+        <p class="small text-muted">
+            La categoría se obtiene desde la relación actual del producto; el esquema no guarda
+            una copia histórica de la categoría en cada detalle.
+        </p>
+    </section>
+</div>

@@ -1,0 +1,57 @@
+@model IEnumerable<HocicosAJ.Models.Database.Comprobante>
+
+@{
+    ViewData["Title"] = "Comprobantes";
+    var compraId = ViewData["CompraId"] as int?;
+}
+
+<div class="container mt-4">
+    <h1>Comprobantes</h1>
+    @if (compraId.HasValue)
+    {
+        <p>Comprobantes de la compra #@compraId.Value</p>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <p>No hay comprobantes registrados.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Tipo</th>
+                        <th>Cliente</th>
+                        <th>Fecha de emisión</th>
+                        <th>Compra</th>
+                        <th>Monto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var comprobante in Model)
+                    {
+                        <tr>
+                            <td>@comprobante.NumeroComprobante</td>
+                            <td>@comprobante.TipoComprobante</td>
+                            <td>@comprobante.ComprasIdcomprasNavigation.ClienteIdusuariosNavigation.Nombre</td>
+                            <td>@comprobante.FechaEmision</td>
+                            <td>#@comprobante.ComprasIdcompras</td>
+                            <td>Bs @comprobante.MontoTotal</td>
+                            <td>
+                                <a asp-action="Detalle" asp-route-id="@comprobante.Idcomprobante" class="btn btn-secondary btn-sm">Ver detalle</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <a asp-controller="AdminCompras" asp-action="Index" class="btn btn-secondary">Volver a pedidos</a>
+</div>

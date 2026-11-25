@@ -1,0 +1,58 @@
+@model ProductoFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="mb-3">
+    <label asp-for="Nombre" class="form-label">Nombre del producto</label>
+    <input asp-for="Nombre" class="form-control" />
+    <span asp-validation-for="Nombre" class="text-danger"></span>
+</div>
+
+@if (ViewData["ImagenActual"] is string imagenActual && Url.IsLocalUrl(imagenActual))
+{
+    <div class="mb-3">
+        <p class="form-label">Imagen actual</p>
+        <img src="@Url.Content(imagenActual)" class="admin-image-preview" alt="Imagen del producto" />
+    </div>
+}
+
+<div class="mb-3">
+    <label asp-for="ImagenArchivo" class="form-label">Imagen del producto (JPG, PNG o WebP)</label>
+    <input asp-for="ImagenArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="form-control" />
+    <span asp-validation-for="ImagenArchivo" class="text-danger"></span>
+    <div class="form-text">Límite configurable. Se valida el contenido y se genera un nombre seguro en el servidor.</div>
+    <label asp-for="QuitarImagen" class="form-check-label mt-2">Quitar la imagen actual</label>
+    <input asp-for="QuitarImagen" class="form-check-input ms-2" />
+</div>
+
+<div class="mb-3">
+    <label asp-for="Descripcion" class="form-label">Descripción</label>
+    <textarea asp-for="Descripcion" class="form-control"></textarea>
+    <span asp-validation-for="Descripcion" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Talla" class="form-label">Talla</label>
+    <input asp-for="Talla" class="form-control" />
+    <span asp-validation-for="Talla" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Precio" class="form-label">Precio (Bs)</label>
+    <input asp-for="Precio" class="form-control" type="number" step="0.01" min="0.01" />
+    <span asp-validation-for="Precio" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Stock" class="form-label">Stock</label>
+    <input asp-for="Stock" class="form-control" type="number" min="0" />
+    <span asp-validation-for="Stock" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="CategoriaIdcategoria" class="form-label">Categoría</label>
+    <select asp-for="CategoriaIdcategoria" asp-items="ViewBag.Categorias" class="form-select">
+        <option value="">Seleccione una categoría</option>
+    </select>
+    <span asp-validation-for="CategoriaIdcategoria" class="text-danger"></span>
+</div>

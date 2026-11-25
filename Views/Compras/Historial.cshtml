@@ -1,0 +1,48 @@
+@model IEnumerable<HocicosAJ.Models.Database.Compra>
+
+@{
+    ViewData["Title"] = "Mis compras";
+}
+
+<div class="container mt-4">
+    <h1>Mis compras</h1>
+    <partial name="_Mensajes" />
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <p>Aún no tienes compras registradas.</p>
+            <a asp-controller="Productos" asp-action="Index" class="btn btn-primary">Explorar productos</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var compra in Model)
+                {
+                    <tr>
+                        <td>@compra.Idcompras</td>
+                        <td>@compra.Fecha</td>
+                        <td>@compra.Estado</td>
+                        <td>Bs @compra.Total</td>
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@compra.Idcompras" class="btn btn-secondary btn-sm">Ver detalle</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

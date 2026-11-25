@@ -1,0 +1,97 @@
+@model CatalogoViewModel
+
+@{
+    ViewData["Title"] = "Nuestros productos";
+}
+
+<div class="container mt-4 storefront">
+    <header class="page-heading catalog-heading">
+        <p class="page-eyebrow">ROPA PARA PERROS</p>
+        <h1>Nuestros productos</h1>
+        <p>Explora los productos activos y disponibles; filtra por categoría o busca por nombre.</p>
+    </header>
+    <partial name="_Mensajes" />
+
+    <form asp-controller="Productos" asp-action="Index" method="get" class="row g-3 mb-4 catalog-filter">
+        <div class="col-md-5">
+            <label for="busqueda" class="form-label">Buscar productos</label>
+            <input id="busqueda" name="busqueda" value="@Model.Busqueda" maxlength="60" class="form-control" />
+        </div>
+        <div class="col-md-5">
+            <label for="categoriaId" class="form-label">Filtrar por categoría</label>
+            <select id="categoriaId" name="categoriaId" asp-items="Model.Categorias" class="form-select">
+                <option value="">Todas las categorías</option>
+            </select>
+        </div>
+        <div class="col-md-2 align-self-end d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a asp-action="Index" class="btn btn-secondary">Limpiar filtro</a>
+        </div>
+    </form>
+
+    @if (!Model.Productos.Any())
+    {
+        <div class="empty-state text-center">
+            @if (Model.CategoriaIdSeleccionada.HasValue)
+            {
+                <p>No hay productos disponibles en la categoría «@Model.NombreCategoriaSeleccionada».</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.Busqueda))
+            {
+                <p>No hay productos disponibles que coincidan con «@Model.Busqueda».</p>
+            }
+            else
+            {
+                <p>Actualmente no hay productos disponibles.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 product-grid">
+            @foreach (var producto in Model.Productos)
+            {
+                <div class="col-sm-6 col-xl-4">
+                    <article class="card product-card h-100">
+                        @if (!string.IsNullOrWhiteSpace(producto.Imagen) && Url.IsLocalUrl(producto.Imagen))
+                        {
+                            <img src="@producto.Imagen"
+                                 class="product-card__image"
+                                 alt="@producto.Nombre"
+                                 loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="product-card__placeholder" aria-label="Imagen no disponible">Imagen no disponible</div>
+                        }
+                        <div class="card-body">
+                            <p class="product-card__category">@producto.CategoriaIdcategoriaNavigation.NombreCategoria</p>
+                            <h2 class="card-title">@producto.Nombre</h2>
+                            <p class="card-text product-card__description">@(producto.Descripción ?? "Sin descripción")</p>
+                            <div class="product-card__details">
+                                <span><strong>Talla</strong> @producto.Talla</span>
+                                <span><strong>Stock</strong> @producto.Stock unidades</span>
+                            </div>
+                            <p class="product-card__price">Bs @producto.Precio.ToString("N2")</p>
+                            @if (User.IsInRole("Cliente"))
+                            {
+                                <form asp-controller="Carrito" asp-action="Agregar" method="post" asp-antiforgery="true" class="product-card__form">
+                                    <input type="hidden" name="productoId" value="@producto.Idproductos" />
+                                    <div class="input-group">
+                                        <label class="input-group-text" for="cantidad-@producto.Idproductos">Cantidad</label>
+                                        <input id="cantidad-@producto.Idproductos" type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control" />
+                                        <button type="submit" class="btn btn-primary">Agregar al carrito</button>
+                                    </div>
+                                </form>
+                            }
+                            else if (User.Identity?.IsAuthenticated != true)
+                            {
+                                <a asp-controller="Home" asp-action="AccesoAdmin" asp-route-ReturnUrl="@Url.Action("Index", "Productos")" class="btn btn-secondary w-100">Inicia sesión para agregar</a>
+                            }
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,44 @@
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="container mt-4 auth-page">
+    <header class="page-heading">
+        <p class="page-eyebrow">BIENVENIDO DE NUEVO</p>
+        <h1>Iniciar sesión</h1>
+        <p>Ingresa con tu cuenta registrada para continuar.</p>
+    </header>
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success" role="alert">@success</div>
+    }
+
+    <form asp-controller="Home" asp-action="AccesoAdmin" method="post" asp-antiforgery="true" class="form-panel">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="Usuario" class="form-label">Usuario</label>
+            <input asp-for="Usuario" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Usuario" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Contraseña" class="form-label">Contraseña</label>
+            <input asp-for="Contraseña" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Contraseña" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 pt-2">
+            <button type="submit" class="btn btn-primary">Ingresar</button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            <a asp-controller="Home" asp-action="Registro" class="btn btn-secondary">Crear cuenta de cliente</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

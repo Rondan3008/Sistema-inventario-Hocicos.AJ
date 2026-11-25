@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<div class="container mt-4">
+    <h1>Acceso denegado</h1>
+    <p>La cuenta actual no tiene permisos para acceder al panel administrativo.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver a la tienda</a>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <form asp-controller="Home" asp-action="CerrarSesion" method="post" class="d-inline" asp-antiforgery="true">
+            <button type="submit" class="btn btn-primary">Cerrar sesión</button>
+        </form>
+    }
+</div>

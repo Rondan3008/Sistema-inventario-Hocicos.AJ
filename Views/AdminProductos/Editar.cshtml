@@ -1,0 +1,20 @@
+@model ProductoFormViewModel
+
+@{
+    ViewData["Title"] = "Editar producto";
+}
+
+<div class="container mt-4 admin-content">
+    <h2>Editar producto</h2>
+    <p>HOCICOS A.J. - Administración</p>
+
+    <form asp-action="Editar" asp-route-id="@ViewData["ProductoId"]" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+        <partial name="_FormularioCampos" model="Model" />
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

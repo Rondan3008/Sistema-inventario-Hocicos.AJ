@@ -1,0 +1,48 @@
+@model HocicosAJ.Models.Database.Compra
+
+@{
+    ViewData["Title"] = $"Compra {Model.Idcompras}";
+}
+
+<div class="container mt-4">
+    <div class="no-print">
+        <partial name="_Mensajes" />
+        <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir resumen</button>
+    </div>
+    <section class="print-area">
+        <h1>Detalle de compra #@Model.Idcompras</h1>
+        <p><strong>Fecha:</strong> @Model.Fecha.ToString("g")</p>
+        <p><strong>Estado:</strong> @Model.Estado</p>
+        <p><strong>Total registrado:</strong> Bs @Model.Total.ToString("N2")</p>
+        <p>Este resumen no es un comprobante fiscal ni confirma que el pago se haya recibido.</p>
+
+        <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Talla</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var detalle in Model.DetalleCompras)
+                {
+                    <tr>
+                        <td>@detalle.ProductosIdproductosNavigation.Nombre</td>
+                        <td>@detalle.ProductosIdproductosNavigation.Talla</td>
+                        <td>@detalle.Cantidad</td>
+                        <td>Bs @detalle.PrecioUnitario.ToString("N2")</td>
+                        <td>Bs @detalle.Subtotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <a asp-controller="Comprobantes" asp-action="Index" asp-route-compraId="@Model.Idcompras" class="btn btn-secondary no-print">Ver comprobantes</a>
+    <a asp-action="Historial" class="btn btn-secondary no-print">Volver a mis compras</a>
+</div>

@@ -1,0 +1,65 @@
+@inject HocicosAJ.Services.StorefrontSettingsStore StorefrontSettingsStore
+@{
+    var storefrontSettings = (await StorefrontSettingsStore.GetAsync()).Settings;
+    var controller = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HOCICOS A.J. | Administración</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/HocicosAJ.styles.css" asp-append-version="true" />
+</head>
+<body class="admin-shell">
+    <div class="admin-sidebar">
+        <a class="admin-sidebar__brand" asp-controller="Home" asp-action="Index">
+            @if (!string.IsNullOrEmpty(storefrontSettings.LogoImagePath) && Url.IsLocalUrl(storefrontSettings.LogoImagePath))
+            {
+                <img src="@storefrontSettings.LogoImagePath" alt="HOCICOS A.J." />
+            }
+            else
+            {
+                <span>HOCICOS <b>A.J.</b></span>
+            }
+        </a>
+        <p class="admin-sidebar__caption">Administración</p>
+        <nav class="admin-sidebar__nav" aria-label="Navegación administrativa">
+            <a class="@(controller == "AdminDashboard" ? "is-active" : "")" asp-controller="AdminDashboard" asp-action="Index">Resumen</a>
+            <a class="@(controller == "AdminProductos" ? "is-active" : "")" asp-controller="AdminProductos" asp-action="Index">Productos</a>
+            <a class="@(controller == "AdminCategorias" ? "is-active" : "")" asp-controller="AdminCategorias" asp-action="Index">Categorías</a>
+            <a class="@(controller == "AdminCompras" ? "is-active" : "")" asp-controller="AdminCompras" asp-action="Index">Pedidos</a>
+            <a class="@(controller == "AdminUsuarios" ? "is-active" : "")" asp-controller="AdminUsuarios" asp-action="Index">Usuarios</a>
+            <a class="@(controller == "AdminComprobantes" ? "is-active" : "")" asp-controller="AdminComprobantes" asp-action="Index">Comprobantes</a>
+            <a class="@(controller == "AdminEstadisticas" ? "is-active" : "")" asp-controller="AdminEstadisticas" asp-action="Index">Estadísticas</a>
+            <a class="@(controller == "AdminPersonalizacion" ? "is-active" : "")" asp-controller="AdminPersonalizacion" asp-action="Index">Personalización</a>
+        </nav>
+        <a class="admin-sidebar__store" asp-controller="Home" asp-action="Index">Ver tienda</a>
+    </div>
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div>
+                <span class="admin-topbar__eyebrow">HOCICOS A.J.</span>
+                <h1 class="admin-topbar__title">@ViewData["Title"]</h1>
+            </div>
+            <div class="admin-topbar__user">
+                <span>@User.Identity?.Name</span>
+                <form asp-controller="Home" asp-action="CerrarSesion" method="post" asp-antiforgery="true">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Cerrar sesión</button>
+                </form>
+            </div>
+        </header>
+        <main class="admin-content-area" role="main">
+            <partial name="_Mensajes" />
+            @RenderBody()
+        </main>
+        <footer class="admin-footer">Panel administrativo · HOCICOS A.J.</footer>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

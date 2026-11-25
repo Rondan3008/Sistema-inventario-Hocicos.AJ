@@ -1,0 +1,71 @@
+@model HocicosAJ.Models.ViewModels.AdminComprasIndexViewModel
+
+@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<div class="container mt-4">
+    <h1>Pedidos</h1>
+
+    <form asp-action="Index" method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label asp-for="Filtros.Desde" class="form-label">Desde</label>
+            <input asp-for="Filtros.Desde" type="date" class="form-control" />
+            <span asp-validation-for="Filtros.Desde" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Filtros.Hasta" class="form-label">Hasta</label>
+            <input asp-for="Filtros.Hasta" type="date" class="form-control" />
+            <span asp-validation-for="Filtros.Hasta" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Filtros.Cliente" class="form-label">Cliente (nombre o usuario)</label>
+            <input asp-for="Filtros.Cliente" class="form-control" maxlength="100" />
+            <span asp-validation-for="Filtros.Cliente" class="text-danger"></span>
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a asp-action="Index" class="btn btn-secondary">Limpiar</a>
+        </div>
+        <div asp-validation-summary="All" class="text-danger"></div>
+    </form>
+
+    @if (Model.Compras.Count == 0)
+    {
+        <div class="empty-state">
+            <p>No hay pedidos que coincidan con los filtros.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var compra in Model.Compras)
+                {
+                    <tr>
+                        <td>@compra.Id</td>
+                        <td>@compra.ClienteNombre (@(compra.ClienteUsuario ?? "—"))</td>
+                        <td>@compra.Fecha.ToString("g")</td>
+                        <td>@compra.Estado</td>
+                        <td>Bs @compra.Total.ToString("N2")</td>
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@compra.Id" class="btn btn-secondary btn-sm">Ver detalle</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

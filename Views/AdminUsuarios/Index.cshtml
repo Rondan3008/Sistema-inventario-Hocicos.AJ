@@ -1,0 +1,56 @@
+@model AdminUsuariosIndexViewModel
+
+@{
+    ViewData["Title"] = "Administrar usuarios";
+}
+
+<div class="container mt-4">
+    <h2>Administración de usuarios</h2>
+    <p>Consulta las cuentas registradas en HOCICOS A.J.</p>
+
+    <form asp-action="Index" method="get" class="row g-3 mb-4">
+        <div class="col-md-8">
+            <label asp-for="Busqueda" class="form-label">Buscar por nombre o nombre de usuario</label>
+            <input asp-for="Busqueda" class="form-control" />
+            <span asp-validation-for="Busqueda" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 align-self-end">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a asp-action="Index" class="btn btn-secondary">Limpiar</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Nombre de usuario</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var usuario in Model.Usuarios)
+            {
+                <tr>
+                    <td>@usuario.Id</td>
+                    <td>@usuario.Nombre</td>
+                    <td>@(usuario.Usuario ?? "—")</td>
+                    <td>@usuario.Rol</td>
+                    <td>
+                        <a asp-action="Detalle" asp-route-id="@usuario.Id" class="btn btn-secondary btn-sm">Ver detalles</a>
+                    </td>
+                </tr>
+            }
+            @if (Model.Usuarios.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="text-center">No se encontraron usuarios.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+</div>

@@ -1,0 +1,18 @@
+@model CategoriaFormViewModel
+
+@{
+    ViewData["Title"] = "Registrar categoría";
+}
+
+<div class="container mt-4">
+    <h2>Registrar categoría</h2>
+    <form asp-action="Crear" method="post" asp-antiforgery="true">
+        <partial name="_FormularioCampos" model="Model" />
+        <button type="submit" class="btn btn-primary">Guardar categoría</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

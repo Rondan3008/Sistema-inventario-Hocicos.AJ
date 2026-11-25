@@ -1,0 +1,114 @@
+﻿@inject HocicosAJ.Services.StorefrontSettingsStore StorefrontSettingsStore
+@{
+    var storefrontSettings = (await StorefrontSettingsStore.GetAsync()).Settings;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HOCICOS A.J.</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/HocicosAJ.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-xl navbar-light bg-white site-navbar">
+            <div class="container-fluid site-navbar__inner">
+                <a class="navbar-brand site-brand" asp-area="" asp-controller="Home" asp-action="Index" aria-label="HOCICOS A.J., inicio">
+                    @if (!string.IsNullOrEmpty(storefrontSettings.LogoImagePath) && Url.IsLocalUrl(storefrontSettings.LogoImagePath))
+                    {
+                        <img src="@storefrontSettings.LogoImagePath" alt="HOCICOS A.J." class="site-brand__logo" />
+                    }
+                    else
+                    {
+                        <span>HOCICOS A.J.</span>
+                    }
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav flex-grow-1 align-items-xl-center gap-xl-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Productos" asp-action="Index">Productos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Cliente"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Carrito" asp-action="Index">Carrito</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Compras" asp-action="Historial">Mis compras</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Comprobantes" asp-action="Index">Mis comprobantes</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="AdminDashboard" asp-action="Index">Panel</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="AdminCompras" asp-action="Index">Pedidos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="AdminComprobantes" asp-action="Index">Comprobantes</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <form asp-controller="Home" asp-action="CerrarSesion" method="post" class="d-inline" asp-antiforgery="true">
+                                    <button type="submit" class="btn btn-link nav-link">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="AccesoAdmin">Iniciar sesión</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Registro">Crear cuenta</a>
+                            </li>
+                        }
+                    </ul>
+                    <form asp-controller="Productos" asp-action="Index" method="get" class="site-search" role="search">
+                        <label class="visually-hidden" for="site-search-input">Buscar productos</label>
+                        <input id="site-search-input" type="search" name="busqueda" maxlength="60" class="form-control" placeholder="Buscar productos" />
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main role="main" class="site-main pb-3">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div>
+                <strong>HOCICOS A.J.</strong>
+                <span>@storefrontSettings.FooterText</span>
+            </div>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
